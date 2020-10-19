@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go-core/lesson_1/pkg/fibonacci"
+	fibo "go-core/lesson_1/pkg/fibonacci"
 )
 
 var nFlag = flag.Int("n", 1, "positive numbers up to 20")
@@ -17,6 +17,6 @@ func main() {
 	}
 	fmt.Println("your n = ", n)
 
-	result := fibonacci.Fibonacci(n)
+	result := fibo.Num(n)
 	fmt.Println("the number of fibonacci = ", result)
 }
