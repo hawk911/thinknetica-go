@@ -23,7 +23,6 @@ func main() {
 	fmt.Println("Welcome to the lesson 2")
 	for {
 		fmt.Println("Enter some words that its need to find or leave empty for exit:")
-		words := ""
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
 			words = scanner.Text()
