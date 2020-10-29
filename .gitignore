@@ -16,3 +16,5 @@
 golang.org/
 */**/go.sum
 .idea/
+.vscode/
+
