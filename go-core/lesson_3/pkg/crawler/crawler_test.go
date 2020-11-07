@@ -9,9 +9,11 @@ import (
 )
 
 func TestScan(t *testing.T) {
+
 	const url = "https://habr.com"
 	const depth = 2
-	data, err := Scan(url, depth)
+	s := Crawler{Url: url, Depth: depth}
+	data, err := s.Scan()
 	if err != nil {
 		t.Fatal(err)
 	}
