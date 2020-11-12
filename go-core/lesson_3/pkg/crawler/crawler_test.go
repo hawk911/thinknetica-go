@@ -12,7 +12,7 @@ func TestScan(t *testing.T) {
 
 	const url = "https://habr.com"
 	const depth = 2
-	s := Crawler{Url: url, Depth: depth}
+	s := Param{Url: url, Depth: depth}
 	data, err := s.Scan()
 	if err != nil {
 		t.Fatal(err)

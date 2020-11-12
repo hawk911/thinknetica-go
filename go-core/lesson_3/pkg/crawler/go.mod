@@ -2,4 +2,4 @@ module crawler
 
 go 1.15
 
-require golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
+require golang.org/x/net v0.0.0-20201110031124-69a78807bb2b

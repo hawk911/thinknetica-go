@@ -5,31 +5,17 @@ import (
 	"fmt"
 	"os"
 	"pkg/crawler"
-	"strings"
+	"pkg/engine"
 )
 
-var words string
-
-type Scanner interface {
-	Scan() (map[string]string, error)
-}
-
 func main() {
-
 	url := "https://habr.com/"
 	const depth = 2
+	var words string
+	crw := crawler.New(url, depth)
 	fmt.Println("Scanning... ", url)
-	p := crawler.Crawler{Url: url, Depth: depth}
-	Searching(&p)
-}
 
-func Searching(s Scanner) {
-	titles, err := s.Scan()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("Welcome to the lesson 2")
+	fmt.Println("Welcome to the lesson 3")
 	for {
 		fmt.Println("Enter some words that its need to find or leave empty for exit:")
 		scanner := bufio.NewScanner(os.Stdin)
@@ -47,15 +33,16 @@ func Searching(s Scanner) {
 			break
 		}
 
-		for k, v := range titles {
-			if strings.Contains(lower(k), lower(words)) || strings.Contains(lower(v), lower(words)) {
-				fmt.Printf("%s - '%s'\n", k, v)
-			}
+		found, err := engine.Search(crw, words)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Printf("Results for '%s':\n", words)
+		for _, a := range found {
+			fmt.Println(a)
 		}
 	}
-}
 
-func lower(str string) string {
-	strLower := strings.ToLower(str)
-	return strLower
 }
