@@ -4,7 +4,7 @@ package crawbot
 type Scanner struct{}
 
 // NewScanner - констрктор имитации службы поискового робота.
-func NewScanner() *Scanner {
+func New() *Scanner {
 	s := Scanner{}
 	return &s
 }

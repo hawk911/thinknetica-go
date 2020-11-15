@@ -6,7 +6,7 @@ import (
 )
 
 func TestSearch(t *testing.T) {
-	scanner := crawbot.NewScanner()
+	scanner := crawbot.New()
 
 	found, err := Search(scanner, "There")
 	if err != nil {
