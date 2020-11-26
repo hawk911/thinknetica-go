@@ -1,7 +1,6 @@
-package invertindex
+package index
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 )
@@ -10,9 +9,11 @@ type Scanner interface {
 	Scan() (map[string]string, error)
 }
 
+var id int
+
 type Record struct {
-	Id    int
-	Url   string
+	ID    int
+	URL   string
 	Title string
 }
 
@@ -31,23 +32,19 @@ func New(s Scanner) *Index {
 	return &i
 }
 
-func (i *Index) Fill() error {
+func (i *Index) Fill() (map[string]string, error) {
 	data, err := i.scanner.Scan()
 	if err != nil {
-		return err
+		return data, err
 	}
-	i.fillStorage(&data)
-	i.fillInvertedIndex()
-
-	return nil
+	return data, err
 }
 
-func (i *Index) fillStorage(data *map[string]string) {
-	id := 1
+func (i *Index) FillStorage(data *map[string]string) {
 	for link, title := range *data {
 		r := Record{
-			Id:    id,
-			Url:   link,
+			ID:    id,
+			URL:   link,
 			Title: title,
 		}
 		id++
@@ -55,15 +52,15 @@ func (i *Index) fillStorage(data *map[string]string) {
 	}
 }
 
-func (i *Index) fillInvertedIndex() {
+func (i *Index) FillInvertedIndex() {
 	for _, record := range i.storage {
 		lexemes := map[string]bool{} // map чтобы избежать дублей
 
-		NormalizeWord(&lexemes, record.Url)
+		NormalizeWord(&lexemes, record.URL)
 		NormalizeWord(&lexemes, record.Title)
 
 		for lex := range lexemes {
-			i.invIndex[lex] = append(i.invIndex[lex], record.Id)
+			i.invIndex[lex] = append(i.invIndex[lex], record.ID)
 		}
 	}
 }
@@ -87,8 +84,8 @@ func NormalizeWord(lexemes *map[string]bool, words string) {
 
 // Search выполняет поиск по слову в хранилище с использованием инвертированного индекса
 // используется sort.Search(), который требует дополнительной проверки что коллекция содержит искомый элемент
-func (i *Index) Search(word string) []string {
-	found := []string{}
+func (i *Index) Search(word string) []Record {
+	found := []Record{}
 	storageLength := len(i.storage)
 	ids, ok := i.invIndex[word]
 	if !ok {
@@ -97,13 +94,13 @@ func (i *Index) Search(word string) []string {
 
 	for _, id := range ids {
 		index := sort.Search(storageLength, func(ind int) bool {
-			return (i.storage[ind]).Id >= id
+			return (i.storage[ind]).ID >= id
 		})
 
 		if index < storageLength {
 			rec := i.storage[index]
-			if rec.Id == id {
-				found = append(found, fmt.Sprintf("%s - %s", rec.Url, rec.Title))
+			if rec.ID == id {
+				found = append(found, i.storage[index])
 			}
 		}
 	}

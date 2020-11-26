@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"pkg/crawler"
-	"pkg/invertindex"
+	"pkg/index"
 	"strings"
 )
 
@@ -15,12 +15,15 @@ func main() {
 	var word string
 	crw := crawler.New(url, depth)
 	fmt.Println("Scanning... ", url)
-	i := invertindex.New(crw)
-	err := i.Fill()
+	ind := index.New(crw)
+	data, err := ind.Fill()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	ind.FillStorage(&data)
+	ind.FillInvertedIndex()
+
 	fmt.Println("Welcome to the lesson 4")
 	for {
 		fmt.Println("Enter a word that its need to find or leave empty for exit:")
@@ -39,11 +42,11 @@ func main() {
 			break
 		}
 
-		found := i.Search(strings.ToLower(word))
+		found := ind.Search(strings.ToLower(word))
 
 		fmt.Printf("Results for '%s':\n", word)
-		for _, a := range found {
-			fmt.Println(a)
+		for _, rec := range found {
+			fmt.Printf("%s - %s\n", rec.URL, rec.Title)
 		}
 	}
 
