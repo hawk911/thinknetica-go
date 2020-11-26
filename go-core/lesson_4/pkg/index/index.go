@@ -18,36 +18,36 @@ type Record struct {
 }
 
 type Index struct {
-	scanner  Scanner
-	storage  []Record
-	invIndex map[string][]int
+	storage    []Record
+	invIndex   map[string][]int
+	IdProvider int
 }
 
-func New(s Scanner) *Index {
+func New() *Index {
 	i := Index{
-		scanner:  s,
-		storage:  []Record{},
-		invIndex: map[string][]int{},
+		storage:    []Record{},
+		invIndex:   map[string][]int{},
+		IdProvider: 1,
 	}
 	return &i
 }
 
-func (i *Index) Fill() (map[string]string, error) {
-	data, err := i.scanner.Scan()
-	if err != nil {
-		return data, err
-	}
-	return data, err
-}
+//func (i *Index) Fill() (map[string]string, error) {
+//	data, err := i.scanner.Scan()
+//	if err != nil {
+//		return data, err
+//	}
+//	return data, err
+//}
 
 func (i *Index) FillStorage(data *map[string]string) {
 	for link, title := range *data {
 		r := Record{
-			ID:    id,
+			ID:    i.IdProvider,
 			URL:   link,
 			Title: title,
 		}
-		id++
+		i.IdProvider++
 		i.storage = append(i.storage, r)
 	}
 }
@@ -73,7 +73,7 @@ func NormalizeWord(lexemes *map[string]bool, words string) {
 		word = strings.ToLower(word)
 		word = strings.TrimSpace(word)
 		word = strings.TrimFunc(word, func(r rune) bool {
-			return ((r >= 0 && r <= 64) || (r >= 91 && r <= 96) || (r >= 123))
+			return ((r >= 0 && r <= 64) || (r >= 91 && r <= 96))
 		})
 
 		if len([]rune(word)) > 1 {

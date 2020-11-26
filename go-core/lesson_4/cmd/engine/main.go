@@ -15,12 +15,13 @@ func main() {
 	var word string
 	crw := crawler.New(url, depth)
 	fmt.Println("Scanning... ", url)
-	ind := index.New(crw)
-	data, err := ind.Fill()
+	data, err := crw.Scan()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	ind := index.New()
+
 	ind.FillStorage(&data)
 	ind.FillInvertedIndex()
 
