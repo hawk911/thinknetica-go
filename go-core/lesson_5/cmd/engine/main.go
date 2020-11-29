@@ -15,16 +15,15 @@ func main() {
 	var word string
 	crw := crawler.New(url, depth)
 	fmt.Println("Scanning... ", url)
-	ind := index.New(crw)
-	data, err := ind.Fill()
+	data, err := crw.Scan()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	ind.FillStorage(&data)
-	ind.FillInvertedIndex()
-
+	ind := index.New()
+	ind.Fill(&data)
 	fmt.Println("Welcome to the lesson 4")
+
 	for {
 		fmt.Println("Enter a word that its need to find or leave empty for exit:")
 		scanner := bufio.NewScanner(os.Stdin)

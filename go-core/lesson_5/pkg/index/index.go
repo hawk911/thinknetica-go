@@ -1,7 +1,7 @@
 package index
 
 import (
-	"sort"
+	"fmt"
 	"strings"
 )
 
@@ -9,59 +9,97 @@ type Scanner interface {
 	Scan() (map[string]string, error)
 }
 
-var id int
-
+type BTree struct {
+	root *Element
+}
+type Element struct {
+	left  *Element
+	right *Element
+	Value *Record
+}
 type Record struct {
 	ID    int
 	URL   string
 	Title string
 }
-
 type Index struct {
-	scanner  Scanner
-	storage  []Record
-	invIndex map[string][]int
+	storage    BTree
+	invIndex   map[string][]int
+	IdProvider int
 }
 
-func New(s Scanner) *Index {
+func New() *Index {
 	i := Index{
-		scanner:  s,
-		storage:  []Record{},
-		invIndex: map[string][]int{},
+		storage:    BTree{},
+		invIndex:   map[string][]int{},
+		IdProvider: 1,
 	}
 	return &i
 }
 
-func (i *Index) Fill() (map[string]string, error) {
-	data, err := i.scanner.Scan()
-	if err != nil {
-		return data, err
+func (bt *BTree) Insert(r *Record) {
+	e := &Element{Value: r}
+	if bt.root == nil {
+		bt.root = e
+		return
 	}
-	return data, err
+	insert(bt.root, e)
 }
 
-func (i *Index) FillStorage(data *map[string]string) {
+func insert(node, new *Element) {
+	if new.Value.ID < node.Value.ID {
+		if node.left == nil {
+			node.left = new
+			return
+		}
+		insert(node.left, new)
+	}
+	if new.Value.ID >= node.Value.ID {
+		if node.right == nil {
+			node.right = new
+			return
+		}
+		insert(node.right, new)
+	}
+}
+
+// Search выполняет поиск по слову в хранилище с использованием инвертированного индекса
+func (i *Index) Search(word string) []Record {
+	found := []Record{}
+	ids, ok := i.invIndex[word]
+	if !ok {
+		return found
+	}
+
+	for _, id := range ids {
+		if rec, ok := i.storage.Search(id); ok {
+			//found = append(found, i.storage[index])
+			found = append(found, *rec)
+		}
+	}
+
+	return found
+}
+
+func (i *Index) Fill(data *map[string]string) {
 	for link, title := range *data {
-		r := Record{
-			ID:    id,
+		rec := Record{
+			ID:    i.IdProvider,
 			URL:   link,
 			Title: title,
 		}
-		id++
-		i.storage = append(i.storage, r)
-	}
-}
+		i.storage.Insert(&rec)
 
-func (i *Index) FillInvertedIndex() {
-	for _, record := range i.storage {
 		lexemes := map[string]bool{} // map чтобы избежать дублей
-
-		NormalizeWord(&lexemes, record.URL)
-		NormalizeWord(&lexemes, record.Title)
+		NormalizeWord(&lexemes, rec.URL)
+		NormalizeWord(&lexemes, rec.Title)
 
 		for lex := range lexemes {
-			i.invIndex[lex] = append(i.invIndex[lex], record.ID)
+			i.invIndex[lex] = append(i.invIndex[lex], rec.ID)
 		}
+
+		i.IdProvider++
+
 	}
 }
 
@@ -73,7 +111,7 @@ func NormalizeWord(lexemes *map[string]bool, words string) {
 		word = strings.ToLower(word)
 		word = strings.TrimSpace(word)
 		word = strings.TrimFunc(word, func(r rune) bool {
-			return ((r >= 0 && r <= 64) || (r >= 91 && r <= 96) || (r >= 123))
+			return ((r >= 0 && r <= 64) || (r >= 91 && r <= 96))
 		})
 
 		if len([]rune(word)) > 1 {
@@ -82,28 +120,43 @@ func NormalizeWord(lexemes *map[string]bool, words string) {
 	}
 }
 
-// Search выполняет поиск по слову в хранилище с использованием инвертированного индекса
-// используется sort.Search(), который требует дополнительной проверки что коллекция содержит искомый элемент
-func (i *Index) Search(word string) []Record {
-	found := []Record{}
-	storageLength := len(i.storage)
-	ids, ok := i.invIndex[word]
-	if !ok {
-		return found
-	}
+// Search осуществляет поиск в бинарном дереве
+func (bt *BTree) Search(id int) (*Record, bool) {
+	currentNode := bt.root
 
-	for _, id := range ids {
-		index := sort.Search(storageLength, func(ind int) bool {
-			return (i.storage[ind]).ID >= id
-		})
-
-		if index < storageLength {
-			rec := i.storage[index]
-			if rec.ID == id {
-				found = append(found, i.storage[index])
-			}
+	for {
+		if currentNode == nil {
+			return &Record{}, false
 		}
+
+		if currentNode.Value.ID == id {
+			return currentNode.Value, true
+		}
+
+		if currentNode.Value.ID > id {
+			currentNode = currentNode.left
+			continue
+		}
+
+		currentNode = currentNode.right
+	}
+}
+
+// String позволяет получить простое строковое представление бинарного дерева
+func (bt *BTree) String() string {
+	elems := []int{}
+	bt.root.collect(&elems)
+	return fmt.Sprint(elems)
+}
+
+// collect выполняет рекурсивный обход дерева и собирает Id элементов в массив
+func (n *Element) collect(s *[]int) {
+	if n == nil {
+		return
 	}
 
-	return found
+	*s = append(*s, n.Value.ID)
+
+	n.left.collect(s)
+	n.right.collect(s)
 }

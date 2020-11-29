@@ -1,21 +1,15 @@
 package index
 
 import (
-	"fmt"
 	"pkg/crawbot"
 	"testing"
 )
 
 func TestSearch(t *testing.T) {
 	scanner := crawbot.New()
-	ind := New(scanner)
-	data, err := ind.Fill()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	ind.FillStorage(&data)
-	ind.FillInvertedIndex()
+	data, _ := scanner.Scan()
+	ind := New()
+	ind.Fill(&data)
 
 	found := ind.Search("http")
 	got := len(found)
