@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-type Scanner interface {
-	Scan() (map[string]string, error)
-}
-
 type BTree struct {
 	root *Element
 }
@@ -111,7 +107,7 @@ func NormalizeWord(lexemes *map[string]bool, words string) {
 		word = strings.ToLower(word)
 		word = strings.TrimSpace(word)
 		word = strings.TrimFunc(word, func(r rune) bool {
-			return ((r >= 0 && r <= 64) || (r >= 91 && r <= 96))
+			return (r >= 0 && r <= 64) || (r >= 91 && r <= 96)
 		})
 
 		if len([]rune(word)) > 1 {
